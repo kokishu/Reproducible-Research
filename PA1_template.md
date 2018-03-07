@@ -21,17 +21,13 @@ output:
 #####Fork/clone the GitHub repository created for this assignment. You will submit this assignment by pushing your completed files into your forked repository on GitHub. The assignment submission will consist of the URL to your GitHub repository and the SHA-1 commit ID for your repository state.
 
 #####NOTE: The GitHub repository also contains the dataset for the assignment so you do not have to download the data separately.
-```{r global_options, include=FALSE}
-knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
-                      echo=FALSE, warning=FALSE, message=FALSE)
-```
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+
+
 
 ##Using Library
-```{r}
+
+```r
 library(dplyr)
 library(ggplot2)
 library(lubridate)
@@ -40,15 +36,16 @@ library(lubridate)
 ## 1. Load the data provided Dataset: Activity monitoring data[52k] using read.csv
 
 
-```{r}
-act1 <- read.csv("activity.csv", header = TRUE)
 
+```r
+act1 <- read.csv("activity.csv", header = TRUE)
 ```
 
 
 #### Calculate the total number of taken per day. Using na.Omit() to clean na data. Using group_by(day) then calculate sum steps per day
 
-```{r}
+
+```r
 act_day <- na.omit(act1) %>%
            group_by(date) %>%
            summarise(steps = sum(steps)) %>%
@@ -58,49 +55,66 @@ act_day <- na.omit(act1) %>%
 
 ## 2. Using simple Histogram to plot histogram of the total number of steps taken each day
 
-```{r}
 
+```r
 hist(act_day$steps, col = '#8b9dc3', main = "Total of steps taken each day", 
      xlab ="Total steps per day")
 ```
 
+![](Figs/unnamed-chunk-4-1.png)<!-- -->
+
 
 ## 3 The Mean number of steps taken each day
-```{r}
+
+```r
 actMean<-mean(act_day$steps)
 actMean
 ```
 
+```
+## [1] 10766.19
+```
+
 ## 3 The median number of steps taken each day
-```{r}
+
+```r
 actMedian<-median(act_day$steps)
 actMedian
+```
+
+```
+## [1] 10765
 ```
 
 
 ## 4. Time series plot of the average number of steps taken
 ## 
-```{r}
 
+```r
 act_ave <- na.omit(act1) %>%
            group_by(interval) %>%
            summarise(steps = mean(steps)) 
-  
-          
 ```
 
 
 
-```{r}
+
+```r
 plot( act_ave$interval,act_ave$steps, type = "l", lwd = 2, col = '#4b86b4', 
       ylab = "Average Steps ", xlab= "5-minute Interval", 
       main = "The average steps in 5-minute interval")
-
 ```
+
+![](Figs/unnamed-chunk-8-1.png)<!-- -->
 ### 5. The 5-minute interval that, on average, contains the maximum number of steps
 
-```{r}
+
+```r
 act_ave[which.max(act_ave$steps),]$interval
+```
+
+```
+## [1] 835
 ```
 ## 6. Code to describe and show a strategy for imputing missing data
 
@@ -108,11 +122,14 @@ act_ave[which.max(act_ave$steps),]$interval
 ## Calculate and report the total number of missing values in the dataset using nrow()rows. 
 
 
-```{r}
 
+```r
 act_Na <- act1[act1$steps == "NA",]
 nrow(act_Na)
+```
 
+```
+## [1] 2304
 ```
 
 
@@ -122,52 +139,59 @@ nrow(act_Na)
 #### 3. using ifelse () to replace na with mean of steps by 5min interval. 
 
 
-```{r}
 
+```r
 actna <- act1 %>%
            group_by(interval) %>%
            mutate(dailymean = mean(steps,na.rm = TRUE))
           
 actna$steps <-ifelse(is.na(actna$steps), actna$dailymean, actna$steps)
-
-
 ```
 #### save a copy of actna to new dataset act_week
-```{r}
+
+```r
 act_week <-actna
 ```
 
 ## Calculate the sum of steps taken by day using actna dataset
-```{r}
 
+```r
 actna <- actna %>%
            group_by(date) %>%
            summarise(steps = sum(steps)) %>%
            select(date, steps)
-
 ```
 
 ## 7. Histogram of the total number of steps taken each day after missing values are imputed
-```{r}
+
+```r
 hist(actna$steps, col = '#74d600', main = 'Sum of Daily Steps with Imputed NA', xlab = "Steps")
 ```
 
+![](Figs/unnamed-chunk-14-1.png)<!-- -->
+
 
 ##the mean total number of steps taken per day with NA fill in
-```{r}
+
+```r
 actnaMean<-mean(actna$steps)
 actnaMean
+```
 
-
+```
+## [1] 10766.19
 ```
 
 ##The median total number of steps taken per day with NA fill in
 
-```{r}
 
+```r
 actnaMedian<-median(actna$steps)
 actnaMedian
+```
 
+```
+## [1] 10766.19
 ```
 ###Do these values differ from the estimates from the first part of the assignment? 
 What is the impact of imputing missing data on the estimates of the total daily number of steps?
@@ -179,33 +203,36 @@ What is the impact of imputing missing data on the estimates of the total daily 
 #### There is no different in daily mean total number of steps.
 #### There is a small different in median value.
 
-```{r}
 
+```r
 hist(actna$steps, col='#74d600',main = 'Overlapping Histogram', xlab = "")
 hist(act_day$steps, col='#8b9dc3', add=T)
 box()
 ```
 
+![](Figs/unnamed-chunk-17-1.png)<!-- -->
+
 ###Are there differences in activity patterns between weekdays and weekends?
 ### 
 ### Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
 
-```{r}
-act_week$date <-weekdays(as.Date(actna$date))
 
+```r
+act_week$date <-weekdays(as.Date(actna$date))
 ```
-```{r}
+
+```r
 weekday <- c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday')
 act_week$week <- factor(ifelse(act_week$date %in% weekday,"weekday","weekend"))
-
 ```
 
 ### Split the dataset to two: weekday and weekend
-```{r}
-weeksplit <-split(act_week, act_week$week)
 
+```r
+weeksplit <-split(act_week, act_week$week)
 ```
-```{r}
+
+```r
 act_weekday <- weeksplit$weekday %>%
            group_by(interval) %>%
            summarise(steps = mean(steps)) 
@@ -213,19 +240,21 @@ act_weekday <- weeksplit$weekday %>%
 act_weekend <- weeksplit$weekend %>%
            group_by(interval) %>%
            summarise(steps = mean(steps)) 
-                    
-
 ```
 
 
-```{r}
 
+```r
 plot( act_weekday$interval,act_weekday$steps, type = "l", lwd = 2, main = "Weekday", xlab = "Interval", col = "#5e3c58")  
-
 ```
-```{r}
+
+![](Figs/unnamed-chunk-22-1.png)<!-- -->
+
+```r
 plot( act_weekend$interval,act_weekend$steps, type = "l", lwd = 2, main = "Weekend", xlab ="Interval", ylab ="Steps", col = "#5e3c58")
 ```
+
+![](Figs/unnamed-chunk-23-1.png)<!-- -->
 
 
 
